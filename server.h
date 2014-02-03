@@ -59,7 +59,7 @@ protected:
 private:
    map<string, vector<pair<string, string> > > messageMap;
    QueueThreaded clientQueue;
-   vector<Worker> tenWorkers;
+   vector<pthread_t*> tenWorkers;
 
 };
 

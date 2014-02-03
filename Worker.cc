@@ -21,12 +21,20 @@ Worker::Worker(int bufLength,
 	buflen_ = bufLength;
 	buf_ = new char[buflen_+1];
 
-	clientQueue = *qqq;
+	clientQueue = qqq;
+//	sem_t s = clientQueue.s;
+//	sem_t n = clientQueue.n;
+//	sem_t e = clientQueue.e;
+//	queue<int> que = clientQueue;
+	messageMap = mmm;
 
-	messageMap = *mmm;
+//	vector<pair<string, string> > vectorOfPairs;
+//	vectorOfPairs = messageMap["eddy"];
+//	pair<string, string> theMessage = vectorOfPairs[0];
+//	cout << theMessage.first << ": " << theMessage.second << endl;
 
-	pthread_t thr;
-	pthread_create(&thr, NULL, &doit, this);
+//	pthread_create(&thr, NULL, &doit, this);
+
 };
 
 
@@ -38,9 +46,17 @@ Worker::~Worker() {
 void
 Worker::handle(){
 	while(1){
-		int client = clientQueue.dequeue();
+//		sem_wait(&(clientQueue->n));
+//		sem_wait(&(clientQueue->s));
+//		int client = clientQueue->theQueue.front();
+//		clientQueue->theQueue.pop();
+//		cout << "pop" << endl;
+//		sem_post(&(clientQueue->s));
+//		sem_post(&(clientQueue->e));
+		int client = clientQueue->dequeue();
 		handle(client);
 	}
+	pthread_join(thr, NULL);
 }
 
 void
@@ -110,7 +126,7 @@ Worker::parse_request(string req){
 
 string
 Worker::parse_reset(string getString){
-	messageMap.clear();
+	messageMap->clear();
 	return "OK\n";
 }
 
@@ -135,7 +151,7 @@ Worker::parse_get(string getString){
 	istringstream ( indexString ) >> index;
 	index--;
 
-	vector<pair<string, string> > vecInMap = messageMap[name];
+	vector<pair<string, string> > vecInMap = (*messageMap)[name];
 	int vectorSize = vecInMap.size() - 1;
 	if(index > vectorSize){
 		throw 0;
@@ -176,13 +192,13 @@ Worker::parse_put(string putString){
 	pair<string, string> newMessage;
 	newMessage = make_pair(subject, message);
 //	cout << "subject: " << newMessage.first << " message: " << newMessage.second << "\n";
-	if(messageMap.count(name)){
-		vector<pair<string, string> > messageList = messageMap.at(name);
+	if(messageMap->count(name)){
+		vector<pair<string, string> > messageList = (*messageMap)[name];
 		messageList.push_back(newMessage);
 
 		pair<string, vector<pair<string, string> > > messagePair(name, messageList);
-		messageMap.erase(name);
-		messageMap.insert(messagePair);
+		messageMap->erase(name);
+		messageMap->insert(messagePair);
 
 	}else{
 		vector<pair<string,string> > newVector;
@@ -192,7 +208,7 @@ Worker::parse_put(string putString){
 //		cout << inList.first << inList.second << "\n";
 
 //		pair<string, vector<pair<string, string> > > messagePair;
-		messageMap[name] = newVector;
+		(*messageMap)[name] = newVector;
 
 		//vector<pair<string, string> > vecInMap = messageMap[name];
 
@@ -214,7 +230,7 @@ Worker::parse_list(string listString){
 	user.erase(remove(user.begin(), user.end(), '\n'), user.end());
 //	cout << user << "\n";
 
-	vector<pair<string, string> > vecInMap = messageMap[user];
+	vector<pair<string, string> > vecInMap = (*messageMap)[user];
 //	cout << vecInMap.size() << "\n";element.first
 	ostringstream messageCount;
 	messageCount <<  vecInMap.size();

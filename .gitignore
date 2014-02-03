@@ -26,3 +26,6 @@ unix-echo-client
 *.lai
 *.la
 *.a
+
+.cproject
+.project

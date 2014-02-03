@@ -39,6 +39,7 @@ QueueThreaded::dequeue(){
 	cout << "popped" << endl;
 	sem_post(&s);
 	sem_post(&e);
+	return client;
 }
 
 

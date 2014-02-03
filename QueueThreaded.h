@@ -24,12 +24,14 @@ public:
 	virtual ~QueueThreaded();
 	void enqueue(int);
 	int dequeue();
-private:
-
-	queue<int> theQueue;
 	sem_t s;
 	sem_t n;
 	sem_t e;
+	queue<int> theQueue;
+private:
+
+
+
 };
 
 } /* namespace std */

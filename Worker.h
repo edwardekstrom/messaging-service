@@ -61,10 +61,11 @@ protected:
 
 private:
     void handle(int);
+    pthread_t thr;
 
-   map<string, vector<pair<string, string> > > messageMap;
+   map<string, vector<pair<string, string> > > * messageMap;
 
-   QueueThreaded clientQueue;
+   QueueThreaded * clientQueue;
 };
 
 } /* namespace std */

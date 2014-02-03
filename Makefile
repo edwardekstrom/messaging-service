@@ -7,7 +7,7 @@ OBJS =			$(ECHO-SERVER-SIMPLE) $(ECHO-CLIENT-SIMPLE) $(ECHO-SERVER-SLOW) $(MSGD)
 
 LIBS=			-pthread
 
-CCFLAGS= -g
+CCFLAGS= -g -std=c++0x
 
 all:	msgd msg
 
