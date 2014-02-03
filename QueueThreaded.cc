@@ -14,6 +14,8 @@ QueueThreaded::QueueThreaded() {
 	sem_init(&n, 0, 0);
 	sem_init(&e, 0, 10);
 
+	sem_init(&message_sem, 0, 1);
+
 }
 
 QueueThreaded::~QueueThreaded() {
@@ -25,7 +27,7 @@ QueueThreaded::enqueue(int client){
 	sem_wait(&e);
 	sem_wait(&s);
 	theQueue.push(client);
-	cout << "pushed" <<endl;
+//	cout << "pushed" <<endl;
 	sem_post(&s);
 	sem_post(&n);
 }
@@ -36,7 +38,7 @@ QueueThreaded::dequeue(){
 	sem_wait(&s);
 	int client = theQueue.front();
 	theQueue.pop();
-	cout << "popped" << endl;
+//	cout << "popped" << endl;
 	sem_post(&s);
 	sem_post(&e);
 	return client;

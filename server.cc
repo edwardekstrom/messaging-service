@@ -51,7 +51,7 @@ Server::set_up(){
 		pthread_t thr;
 		pthread_create(&thr, NULL, &doit, w);
 		tenWorkers.push_back(&thr);
-		sleep(1);
+//		sleep(1);
 	}
 }
 

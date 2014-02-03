@@ -15,25 +15,16 @@ void *doit(void * vptr){
 	w->handle();
 }
 Worker::Worker(int bufLength,
-		QueueThreaded *qqq,
-		map<string, vector<pair<string, string> > > *mmm) {
+	QueueThreaded *qqq,
+	map<string, vector<pair<string, string> > > *mmm) {
 
 	buflen_ = bufLength;
 	buf_ = new char[buflen_+1];
 
 	clientQueue = qqq;
-//	sem_t s = clientQueue.s;
-//	sem_t n = clientQueue.n;
-//	sem_t e = clientQueue.e;
-//	queue<int> que = clientQueue;
+
 	messageMap = mmm;
 
-//	vector<pair<string, string> > vectorOfPairs;
-//	vectorOfPairs = messageMap["eddy"];
-//	pair<string, string> theMessage = vectorOfPairs[0];
-//	cout << theMessage.first << ": " << theMessage.second << endl;
-
-//	pthread_create(&thr, NULL, &doit, this);
 
 };
 
@@ -46,13 +37,7 @@ Worker::~Worker() {
 void
 Worker::handle(){
 	while(1){
-//		sem_wait(&(clientQueue->n));
-//		sem_wait(&(clientQueue->s));
-//		int client = clientQueue->theQueue.front();
-//		clientQueue->theQueue.pop();
-//		cout << "pop" << endl;
-//		sem_post(&(clientQueue->s));
-//		sem_post(&(clientQueue->e));
+
 		int client = clientQueue->dequeue();
 		handle(client);
 	}
@@ -70,8 +55,9 @@ Worker::handle(int client) {
         if (request.empty())
         	break;
 
-       //cout<< request;
+
         string response = parse_request(request);
+
 
 
         // send response
@@ -132,7 +118,7 @@ Worker::parse_reset(string getString){
 
 string
 Worker::parse_get(string getString){
-//	int pos = getString.find("get") + 2;
+
 	if(getString.length() < 5)
 		throw 0;
 	string name = wordAt(2, getString);
@@ -140,20 +126,19 @@ Worker::parse_get(string getString){
 	if(pos+1 > getString.length()){
 		throw 0;
 	}
-//	pos = getString.find("name");
-//	if(pos > getString.length()){
-//		throw 0;
-//	}
+
 	string indexString = wordAt(3, getString);
 	indexString.erase(remove(indexString.begin(), indexString.end(), '\n'), indexString.end());
-//	cout<<name<<indexString;
+
 	int index;
 	istringstream ( indexString ) >> index;
 	index--;
 
+	sem_wait(&(clientQueue->message_sem));
 	vector<pair<string, string> > vecInMap = (*messageMap)[name];
 	int vectorSize = vecInMap.size() - 1;
 	if(index > vectorSize){
+		sem_post(&(clientQueue->message_sem));
 		throw 0;
 	}
 
@@ -161,6 +146,8 @@ Worker::parse_get(string getString){
 
 	string subject = pairInVector.first;
 	string message = pairInVector.second;
+
+	sem_post(&(clientQueue->message_sem));
 
 	string toReturn = "message " + subject + "\n" + message;
 	toReturn = toReturn.substr(0, toReturn.size()-1);
@@ -178,7 +165,7 @@ Worker::parse_put(string putString){
 		throw 0;
 	}
 	string subject = line.substr(pos + 1);
-//	subject = subject.substr(0, subject.size()-2);
+
 	if(!isdigit( subject.at(subject.length() -1 ))){
 		throw 0;
 	}
@@ -191,7 +178,8 @@ Worker::parse_put(string putString){
 	}
 	pair<string, string> newMessage;
 	newMessage = make_pair(subject, message);
-//	cout << "subject: " << newMessage.first << " message: " << newMessage.second << "\n";
+
+	sem_wait(&(clientQueue->message_sem));
 	if(messageMap->count(name)){
 		vector<pair<string, string> > messageList = (*messageMap)[name];
 		messageList.push_back(newMessage);
@@ -203,20 +191,10 @@ Worker::parse_put(string putString){
 	}else{
 		vector<pair<string,string> > newVector;
 		newVector.push_back(newMessage);
-		//pair<string, string> pairInVector = newVector[0];
-
-//		cout << inList.first << inList.second << "\n";
-
-//		pair<string, vector<pair<string, string> > > messagePair;
 		(*messageMap)[name] = newVector;
 
-		//vector<pair<string, string> > vecInMap = messageMap[name];
-
-		//pair<string, string> inVecInMap = vecInMap[0];
-
-//		cout << name << vecInMap.size() << " " << inVecInMap.first << inVecInMap.second <<  "\n";
 	}
-
+	sem_post(&(clientQueue->message_sem));
 	return toReturn;
 }
 
@@ -228,10 +206,10 @@ Worker::parse_list(string listString){
 	}
 	string user = wordAt(2, listString);
 	user.erase(remove(user.begin(), user.end(), '\n'), user.end());
-//	cout << user << "\n";
 
+	sem_wait(&(clientQueue->message_sem));
 	vector<pair<string, string> > vecInMap = (*messageMap)[user];
-//	cout << vecInMap.size() << "\n";element.first
+
 	ostringstream messageCount;
 	messageCount <<  vecInMap.size();
 
@@ -251,6 +229,7 @@ Worker::parse_list(string listString){
 
 		toReturn += index.str() + " " + subject + "\n";
 	}
+	sem_post(&(clientQueue->message_sem));
 //	cout<<toReturn;
 	return toReturn;
 
@@ -277,10 +256,7 @@ Worker::get_request(int client) {
         request.append(buf_,nread);
         request = check_whole(request, client);
     }
-    // a better server would cut off anything after the newline and
-    // save it in a cache
-    //request.append("eddy is awesome");
-    //cout<<request;
+
     return request;
 }
 
@@ -385,17 +361,11 @@ Worker::wordAt(int index, string line)
     string word; // the resulting word
     for (int i = 0 ; i < line.length(); i++) { // iterate over all characters in 'line'
         if (line[i] == ' ') { // if this character is a space we might be done reading a word from 'line'
-//        	if (line[i+1] == '\n') throw 0;
             if (line[i+1] != ' ') { // next character is not a space, so we are done reading a word
                 count++; // increase number of read words
     	        if (count == index) { // was this the word we were looking for?
     	            return word; // yes it was, so return it
     	        }
-//    	        else if(i+1 > line.length()){
-//    	        	throw 0;
-//    	        }else if(line[i+1] == '\n'){
-//    	        	throw 0;
-//    	        }
     	        word =""; // nope it wasn't .. so reset word and start over with the next one in 'line'
             }
         }

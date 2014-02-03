@@ -28,6 +28,9 @@ public:
 	sem_t n;
 	sem_t e;
 	queue<int> theQueue;
+
+
+	 sem_t message_sem;
 private:
 
 
