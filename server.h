@@ -16,6 +16,11 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include "Worker.h"
+#include <semaphore.h>
+#include <pthread.h>
+#include <queue>
+#include "QueueThreaded.h"
 
 using namespace std;
 
@@ -25,11 +30,15 @@ public:
     ~Server();
 
     void run();
-    
+    void set_messageMap(map<string, vector<pair<string, string> > >);
+    void  make_worker(void *);
+
+
 protected:
     virtual void create();
     virtual void close_socket();
     void serve();
+    void set_up();
     void handle(int);
     string get_request(int);
     bool send_response(int, string);
@@ -42,11 +51,16 @@ protected:
 
     string check_whole(string reqSoFar, int client);
 
+
     int server_;
     int buflen_;
     char* buf_;
 
 private:
    map<string, vector<pair<string, string> > > messageMap;
+   QueueThreaded clientQueue;
+   vector<Worker> tenWorkers;
 
 };
+
+

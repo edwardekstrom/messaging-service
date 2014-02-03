@@ -1,11 +1,11 @@
 # Makefile for socket examples
 
 CXX=			g++ $(CCFLAGS)
-MSGD=			msgd.o inet-server.o server.o
+MSGD=			msgd.o inet-server.o server.o Worker.o QueueThreaded.o
 MSG=			msg.o inet-client.o client.o
 OBJS =			$(ECHO-SERVER-SIMPLE) $(ECHO-CLIENT-SIMPLE) $(ECHO-SERVER-SLOW) $(MSGD) $(MSG) $(UNIX-ECHO-SERVER) $(UNIX-ECHO-CLIENT) 
 
-LIBS=
+LIBS=			-pthread
 
 CCFLAGS= -g
 
